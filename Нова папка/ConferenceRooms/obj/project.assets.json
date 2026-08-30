@@ -453,11 +453,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Conference Rooms\\ConferenceRooms\\ConferenceRooms\\ConferenceRooms.csproj",
+      "projectUniqueName": "C:\\Conference Rooms\\ConferenceRooms\\Нова папка\\ConferenceRooms\\ConferenceRooms.csproj",
       "projectName": "ConferenceRooms",
-      "projectPath": "C:\\Conference Rooms\\ConferenceRooms\\ConferenceRooms\\ConferenceRooms.csproj",
+      "projectPath": "C:\\Conference Rooms\\ConferenceRooms\\Нова папка\\ConferenceRooms\\ConferenceRooms.csproj",
       "packagesPath": "C:\\Users\\Yana\\.nuget\\packages\\",
-      "outputPath": "C:\\Conference Rooms\\ConferenceRooms\\ConferenceRooms\\obj\\",
+      "outputPath": "C:\\Conference Rooms\\ConferenceRooms\\Нова папка\\ConferenceRooms\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

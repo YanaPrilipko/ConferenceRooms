@@ -35,3 +35,38 @@ C:\Conference Rooms\ConferenceRooms\ConferenceRooms\obj\Debug\net8.0\ConferenceR
 C:\Conference Rooms\ConferenceRooms\ConferenceRooms\obj\Debug\net8.0\ref\ConferenceRooms.dll
 C:\Conference Rooms\ConferenceRooms\ConferenceRooms\bin\Debug\net8.0\ConferenceRooms.xml
 C:\Conference Rooms\ConferenceRooms\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.xml
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\appsettings.Development.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\appsettings.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\ConferenceRooms.staticwebassets.endpoints.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\ConferenceRooms.exe
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\ConferenceRooms.deps.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\ConferenceRooms.runtimeconfig.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\ConferenceRooms.dll
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\ConferenceRooms.pdb
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.csproj.AssemblyReference.cache
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.GeneratedMSBuildEditorConfig.editorconfig
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.AssemblyInfoInputs.cache
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.AssemblyInfo.cs
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.csproj.CoreCompileInputs.cache
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.MvcApplicationPartsAssemblyInfo.cs
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.MvcApplicationPartsAssemblyInfo.cache
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\scopedcss\bundle\ConferenceRooms.styles.css
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\staticwebassets.build.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\staticwebassets.development.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\Conferen.1665EF08.Up2Date
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.dll
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\refint\ConferenceRooms.dll
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.pdb
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ConferenceRooms.genruntimeconfig.cache
+C:\Conference Rooms\ConferenceRooms\Нова папка\ConferenceRooms\obj\Debug\net8.0\ref\ConferenceRooms.dll
