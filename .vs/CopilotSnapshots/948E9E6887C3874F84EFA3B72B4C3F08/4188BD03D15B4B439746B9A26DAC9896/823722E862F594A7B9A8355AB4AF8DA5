@@ -1,0 +1,32 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConferenceRooms.Controllers;
+
+[ApiController]
+[Route("api/bookings")]
+public class BookingsController(IConferenceRoomService service) : ControllerBase
+{
+    [HttpPost]
+    public IActionResult CreateBooking([FromBody] BookingDto request)
+    {
+        var result = service.CreateBooking(request);
+        if (!result.Success)
+        {
+            if (string.Equals(result.Error, "Зал не знайдено.", StringComparison.Ordinal))
+            {
+                return NotFound(new { Message = result.Error });
+            }
+
+            if (string.Equals(result.Error, "На цей час зал вже заброньовано.", StringComparison.Ordinal))
+            {
+                return Conflict(new { Message = result.Error });
+            }
+
+            return BadRequest(new { Message = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+}

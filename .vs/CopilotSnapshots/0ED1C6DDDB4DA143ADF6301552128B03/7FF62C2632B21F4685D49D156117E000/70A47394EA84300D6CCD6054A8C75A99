@@ -1,0 +1,15 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services.Results;
+
+namespace ConferenceRooms.Services;
+
+public interface IConferenceRoomService
+{
+    IReadOnlyCollection<RoomDto> GetRooms();
+    OperationResult<RoomDto> GetRoom(Guid id);
+    OperationResult<Guid> CreateRoom(RoomDto request);
+    OperationResult UpdateRoom(Guid id, RoomDto request);
+    OperationResult DeleteRoom(Guid id);
+    OperationResult<IReadOnlyCollection<RoomDto>> FindAvailableRooms(DateTime start, DateTime end, int capacity);
+    OperationResult<BookingDto> CreateBooking(BookingDto request);
+}

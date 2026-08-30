@@ -1,0 +1,51 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services;
+using ConferenceRooms.Services.Results;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConferenceRooms.Controllers;
+
+/// <summary>
+/// Керує створенням бронювань конференц-залів.
+/// </summary>
+[ApiController]
+[Route("api/bookings")]
+public class BookingsController(IConferenceRoomService service) : ControllerBase
+{
+    /// <summary>
+    /// Створює бронювання з розрахунком вартості.
+    /// </summary>
+    /// <param name="request">Параметри бронювання.</param>
+    /// <returns>Створене бронювання з підсумковою вартістю.</returns>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public IActionResult CreateBooking([FromBody] BookingDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var result = service.CreateBooking(request);
+        if (!result.Success)
+        {
+            return ToActionResult(result);
+        }
+
+        return Created(string.Empty, result.Value);
+    }
+
+    private IActionResult ToActionResult(OperationResult result)
+    {
+        return result.ErrorCode switch
+        {
+            OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+            OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+            OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Виникла внутрішня помилка." })
+        };
+    }
+}

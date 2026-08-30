@@ -1,0 +1,107 @@
+[
+  {
+    "ContainingType": "ConferenceRooms.Controllers.BookingsController",
+    "Method": "CreateBooking",
+    "RelativePath": "api/bookings",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ConferenceRooms.Contracts.BookingDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ConferenceRooms.Controllers.RoomsController",
+    "Method": "GetRooms",
+    "RelativePath": "api/rooms",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ConferenceRooms.Controllers.RoomsController",
+    "Method": "CreateRoom",
+    "RelativePath": "api/rooms",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ConferenceRooms.Contracts.RoomDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ConferenceRooms.Controllers.RoomsController",
+    "Method": "UpdateRoom",
+    "RelativePath": "api/rooms/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "ConferenceRooms.Contracts.RoomDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ConferenceRooms.Controllers.RoomsController",
+    "Method": "DeleteRoom",
+    "RelativePath": "api/rooms/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ConferenceRooms.Controllers.RoomsController",
+    "Method": "GetAvailableRooms",
+    "RelativePath": "api/rooms/available",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "start",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "end",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "capacity",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

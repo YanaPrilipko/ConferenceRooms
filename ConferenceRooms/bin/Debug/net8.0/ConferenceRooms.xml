@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ConferenceRooms</name>
+    </assembly>
+    <members>
+        <member name="T:ConferenceRooms.Controllers.BookingsController">
+            <summary>
+            Керує створенням бронювань конференц-залів.
+            </summary>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.BookingsController.#ctor(ConferenceRooms.Services.IConferenceRoomService)">
+            <summary>
+            Керує створенням бронювань конференц-залів.
+            </summary>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.BookingsController.CreateBooking(ConferenceRooms.Contracts.BookingDto)">
+            <summary>
+            Створює бронювання з розрахунком вартості.
+            </summary>
+            <param name="request">Параметри бронювання.</param>
+            <returns>Створене бронювання з підсумковою вартістю.</returns>
+        </member>
+        <member name="T:ConferenceRooms.Controllers.RoomsController">
+            <summary>
+            Керує конференц-залами: створенням, оновленням, видаленням та пошуком доступних залів.
+            </summary>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.RoomsController.#ctor(ConferenceRooms.Services.IConferenceRoomService)">
+            <summary>
+            Керує конференц-залами: створенням, оновленням, видаленням та пошуком доступних залів.
+            </summary>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.RoomsController.GetRooms">
+            <summary>
+            Повертає список усіх залів.
+            </summary>
+            <returns>Колекція залів.</returns>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.RoomsController.GetRoom(System.Guid)">
+            <summary>
+            Повертає зал за ідентифікатором.
+            </summary>
+            <param name="id">Ідентифікатор залу.</param>
+            <returns>Зал або помилку, якщо його не знайдено.</returns>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.RoomsController.CreateRoom(ConferenceRooms.Contracts.RoomDto)">
+            <summary>
+            Створює новий конференц-зал.
+            </summary>
+            <param name="request">Дані залу.</param>
+            <returns>Ідентифікатор створеного залу.</returns>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.RoomsController.UpdateRoom(System.Guid,ConferenceRooms.Contracts.RoomDto)">
+            <summary>
+            Оновлює дані конференц-залу.
+            </summary>
+            <param name="id">Ідентифікатор залу.</param>
+            <param name="request">Оновлені дані.</param>
+            <returns>Підтвердження оновлення.</returns>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.RoomsController.DeleteRoom(System.Guid)">
+            <summary>
+            Видаляє конференц-зал.
+            </summary>
+            <param name="id">Ідентифікатор залу.</param>
+            <returns>Підтвердження видалення.</returns>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.RoomsController.GetAvailableRooms(System.DateTime,System.DateTime,System.Int32)">
+            <summary>
+            Повертає доступні зали для заданого проміжку часу та місткості.
+            </summary>
+            <param name="start">Дата та час початку.</param>
+            <param name="end">Дата та час завершення.</param>
+            <param name="capacity">Мінімальна місткість.</param>
+            <returns>Список доступних залів.</returns>
+        </member>
+    </members>
+</doc>

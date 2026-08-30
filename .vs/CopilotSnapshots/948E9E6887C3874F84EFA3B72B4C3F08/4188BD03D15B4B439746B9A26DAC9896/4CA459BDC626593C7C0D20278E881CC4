@@ -1,0 +1,279 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Models;
+using ConferenceRooms.Services.Results;
+
+namespace ConferenceRooms.Services;
+
+public class ConferenceRoomService : IConferenceRoomService
+{
+    private readonly List<ConferenceRoom> _rooms;
+    private readonly List<Booking> _bookings = [];
+    private readonly object _syncRoot = new();
+
+    public ConferenceRoomService()
+    {
+        var defaultServices = new List<ServiceOption>
+        {
+            new() { Id = Guid.NewGuid(), Name = "Проєктор", Price = 500 },
+            new() { Id = Guid.NewGuid(), Name = "Wi-Fi", Price = 300 },
+            new() { Id = Guid.NewGuid(), Name = "Звук", Price = 700 }
+        };
+
+        _rooms =
+        [
+            new ConferenceRoom
+            {
+                Id = Guid.NewGuid(),
+                Name = "Зал A",
+                Capacity = 50,
+                BaseHourlyRate = 2000,
+                Services = CopyServices(defaultServices)
+            },
+            new ConferenceRoom
+            {
+                Id = Guid.NewGuid(),
+                Name = "Зал B",
+                Capacity = 100,
+                BaseHourlyRate = 3500,
+                Services = CopyServices(defaultServices)
+            },
+            new ConferenceRoom
+            {
+                Id = Guid.NewGuid(),
+                Name = "Зал C",
+                Capacity = 30,
+                BaseHourlyRate = 1500,
+                Services = CopyServices(defaultServices)
+            }
+        ];
+    }
+
+    public IReadOnlyCollection<RoomDto> GetRooms()
+    {
+        lock (_syncRoot)
+        {
+            return _rooms.Select(MapRoomToDto).ToList();
+        }
+    }
+
+    public OperationResult<Guid> CreateRoom(RoomDto request)
+    {
+        var filteredServices = request.Services
+            .Where(s => !string.IsNullOrWhiteSpace(s.Name) && s.Price >= 0)
+            .Select(s => new ServiceOption
+            {
+                Id = Guid.NewGuid(),
+                Name = s.Name.Trim(),
+                Price = s.Price
+            })
+            .ToList();
+
+        var room = new ConferenceRoom
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name.Trim(),
+            Capacity = request.Capacity,
+            BaseHourlyRate = request.BaseHourlyRate,
+            Services = filteredServices
+        };
+
+        lock (_syncRoot)
+        {
+            _rooms.Add(room);
+        }
+
+        return OperationResult<Guid>.Ok(room.Id);
+    }
+
+    public OperationResult UpdateRoom(Guid id, RoomDto request)
+    {
+        lock (_syncRoot)
+        {
+            var room = _rooms.FirstOrDefault(r => r.Id == id);
+            if (room is null)
+            {
+                return OperationResult.Fail("Зал не знайдено.");
+            }
+
+            room.Name = request.Name.Trim();
+            room.Capacity = request.Capacity;
+            room.BaseHourlyRate = request.BaseHourlyRate;
+            room.Services = request.Services
+                .Where(s => !string.IsNullOrWhiteSpace(s.Name) && s.Price >= 0)
+                .Select(s => new ServiceOption
+                {
+                    Id = Guid.NewGuid(),
+                    Name = s.Name.Trim(),
+                    Price = s.Price
+                })
+                .ToList();
+
+            return OperationResult.Ok();
+        }
+    }
+
+    public OperationResult DeleteRoom(Guid id)
+    {
+        lock (_syncRoot)
+        {
+            var room = _rooms.FirstOrDefault(r => r.Id == id);
+            if (room is null)
+            {
+                return OperationResult.Fail("Зал не знайдено.");
+            }
+
+            _rooms.Remove(room);
+            _bookings.RemoveAll(b => b.RoomId == id);
+            return OperationResult.Ok();
+        }
+    }
+
+    public OperationResult<IReadOnlyCollection<RoomDto>> FindAvailableRooms(DateTime start, DateTime end, int capacity)
+    {
+        if (end <= start)
+        {
+            return OperationResult<IReadOnlyCollection<RoomDto>>.Fail("Кінцевий час має бути пізніше за початковий.");
+        }
+
+        if (capacity < 1)
+        {
+            return OperationResult<IReadOnlyCollection<RoomDto>>.Fail("Місткість має бути більше нуля.");
+        }
+
+        lock (_syncRoot)
+        {
+            var available = _rooms
+                .Where(r => r.Capacity >= capacity)
+                .Where(r => _bookings.All(b => b.RoomId != r.Id || !IsOverlapping(start, end, b.Start, b.End)))
+                .Select(MapRoomToDto)
+                .ToList();
+
+            return OperationResult<IReadOnlyCollection<RoomDto>>.Ok(available);
+        }
+    }
+
+    public OperationResult<BookingDto> CreateBooking(BookingDto request)
+    {
+        lock (_syncRoot)
+        {
+            var room = _rooms.FirstOrDefault(r => r.Id == request.RoomId);
+            if (room is null)
+            {
+                return OperationResult<BookingDto>.Fail("Зал не знайдено.");
+            }
+
+            var end = request.Start.AddHours(request.DurationHours);
+            var overlap = _bookings.Any(b => b.RoomId == room.Id && IsOverlapping(request.Start, end, b.Start, b.End));
+            if (overlap)
+            {
+                return OperationResult<BookingDto>.Fail("На цей час зал вже заброньовано.");
+            }
+
+            var selectedServices = room.Services
+                .Where(s => request.SelectedServiceNames.Any(ss => string.Equals(ss, s.Name, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            var rentalCost = CalculateRentalCost(room.BaseHourlyRate, request.Start, end);
+            var servicesCost = selectedServices.Sum(s => s.Price);
+            var totalCost = rentalCost + servicesCost;
+
+            var booking = new Booking
+            {
+                Id = Guid.NewGuid(),
+                RoomId = room.Id,
+                RoomName = room.Name,
+                Start = request.Start,
+                End = end,
+                DurationHours = request.DurationHours,
+                Services = selectedServices,
+                RentalCost = decimal.Round(rentalCost, 2),
+                ServicesCost = decimal.Round(servicesCost, 2),
+                TotalCost = decimal.Round(totalCost, 2)
+            };
+
+            _bookings.Add(booking);
+
+            var response = new BookingDto
+            {
+                Id = booking.Id,
+                RoomId = booking.RoomId,
+                RoomName = booking.RoomName,
+                Start = booking.Start,
+                End = booking.End,
+                DurationHours = booking.DurationHours,
+                SelectedServiceNames = request.SelectedServiceNames,
+                SelectedServices = booking.Services.Select(MapServiceToDto).ToList(),
+                RentalCost = booking.RentalCost,
+                ServicesCost = booking.ServicesCost,
+                TotalCost = booking.TotalCost,
+                Message = "Бронювання успішне."
+            };
+
+            return OperationResult<BookingDto>.Ok(response);
+        }
+    }
+
+    private static bool IsOverlapping(DateTime startA, DateTime endA, DateTime startB, DateTime endB)
+        => startA < endB && endA > startB;
+
+    private static decimal CalculateRentalCost(decimal baseHourlyRate, DateTime start, DateTime end)
+    {
+        var total = 0m;
+        var current = start;
+
+        while (current < end)
+        {
+            var next = current.AddMinutes(30);
+            if (next > end)
+            {
+                next = end;
+            }
+
+            var hours = (decimal)(next - current).TotalHours;
+            var multiplier = GetMultiplier(current.TimeOfDay);
+            total += baseHourlyRate * multiplier * hours;
+            current = next;
+        }
+
+        return total;
+    }
+
+    private static decimal GetMultiplier(TimeSpan time)
+    {
+        if (time >= new TimeSpan(18, 0, 0) && time < new TimeSpan(23, 0, 0))
+        {
+            return 0.8m;
+        }
+
+        if (time >= new TimeSpan(6, 0, 0) && time < new TimeSpan(9, 0, 0))
+        {
+            return 0.9m;
+        }
+
+        if (time >= new TimeSpan(12, 0, 0) && time < new TimeSpan(14, 0, 0))
+        {
+            return 1.2m;
+        }
+
+        return 1.0m;
+    }
+
+    private static RoomDto MapRoomToDto(ConferenceRoom room) => new()
+    {
+        Id = room.Id,
+        Name = room.Name,
+        Capacity = room.Capacity,
+        BaseHourlyRate = room.BaseHourlyRate,
+        Services = room.Services.Select(MapServiceToDto).ToList()
+    };
+
+    private static ServiceOptionDto MapServiceToDto(ServiceOption service) => new()
+    {
+        Id = service.Id,
+        Name = service.Name,
+        Price = service.Price
+    };
+
+    private static List<ServiceOption> CopyServices(IEnumerable<ServiceOption> services)
+        => services.Select(s => new ServiceOption { Id = s.Id, Name = s.Name, Price = s.Price }).ToList();
+}
