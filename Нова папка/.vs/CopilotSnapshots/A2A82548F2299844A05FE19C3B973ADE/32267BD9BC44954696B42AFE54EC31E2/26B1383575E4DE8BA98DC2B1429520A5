@@ -1,0 +1,78 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Data;
+using ConferenceRooms.Services.Results;
+using Microsoft.EntityFrameworkCore;
+
+namespace ConferenceRooms.Services;
+
+public class ConferenceRoomBusinessLogic(ConferenceRoomsDbContext dbContext) : IConferenceRoomBusinessLogic
+{
+    public OperationResult<IReadOnlyCollection<RoomUtilizationReportDto>> GetRoomUtilizationReport(DateTime from, DateTime to)
+    {
+        if (to <= from)
+        {
+            return OperationResult<IReadOnlyCollection<RoomUtilizationReportDto>>.Fail(
+                "Кінцева дата має бути пізніше за початкову.",
+                OperationErrorCode.ValidationFailed);
+        }
+
+        var rooms = dbContext.Rooms
+            .AsNoTracking()
+            .Select(r => new { r.Id, r.Name })
+            .ToList();
+
+        var bookings = dbContext.Bookings
+            .AsNoTracking()
+            .Where(b => b.Start < to && b.End > from)
+            .Select(b => new { b.RoomId, b.Start, b.End })
+            .ToList();
+
+        var bookedByRoom = bookings
+            .GroupBy(b => b.RoomId)
+            .ToDictionary(
+                g => g.Key,
+                g => new
+                {
+                    BookingCount = g.Count(),
+                    BookedHours = g.Sum(x => CalculateOverlapHours(x.Start, x.End, from, to))
+                });
+
+        var availableHours = (to - from).TotalHours;
+
+        var report = rooms
+            .Select(room =>
+            {
+                bookedByRoom.TryGetValue(room.Id, out var bookedData);
+                var bookedHours = bookedData?.BookedHours ?? 0;
+                var bookingCount = bookedData?.BookingCount ?? 0;
+                var utilizationPercent = availableHours > 0
+                    ? Math.Round((bookedHours / availableHours) * 100, 2)
+                    : 0;
+
+                return new RoomUtilizationReportDto
+                {
+                    RoomId = room.Id,
+                    RoomName = room.Name,
+                    BookingCount = bookingCount,
+                    BookedHours = Math.Round(bookedHours, 2),
+                    AvailableHours = Math.Round(availableHours, 2),
+                    UtilizationPercent = utilizationPercent
+                };
+            })
+            .OrderByDescending(x => x.UtilizationPercent)
+            .ThenBy(x => x.RoomName)
+            .ToList();
+
+        return OperationResult<IReadOnlyCollection<RoomUtilizationReportDto>>.Ok(report);
+    }
+
+    private double CalculateOverlapHours(DateTime bookingStart, DateTime bookingEnd, DateTime from, DateTime to)
+    {
+        var overlapStart = bookingStart > from ? bookingStart : from;
+        var overlapEnd = bookingEnd < to ? bookingEnd : to;
+
+        return overlapEnd > overlapStart
+            ? (overlapEnd - overlapStart).TotalHours
+            : 0;
+    }
+}

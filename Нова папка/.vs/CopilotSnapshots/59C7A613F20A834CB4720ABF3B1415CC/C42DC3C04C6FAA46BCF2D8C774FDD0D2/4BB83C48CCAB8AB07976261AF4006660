@@ -1,0 +1,58 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services;
+using ConferenceRooms.Services.Results;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConferenceRooms.Controllers;
+
+/// <summary>
+/// Provides endpoints for creating conference room bookings.
+/// </summary>
+[ApiController]
+[Route("api/bookings")]
+[Produces("application/json")]
+public class BookingsController(IConferenceRoomService service) : ControllerBase
+{
+    /// <summary>
+    /// Creates a new booking for a conference room.
+    /// </summary>
+    /// <param name="request">Booking data.</param>
+    /// <returns>Booking creation result.</returns>
+    /// <response code="200">Booking created successfully.</response>
+    /// <response code="400">Validation failed.</response>
+    /// <response code="404">Room not found.</response>
+    /// <response code="409">Room is already booked for selected time slot.</response>
+    /// <response code="500">Internal server error.</response>
+    [HttpPost]
+    [ProducesResponseType(typeof(BookingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorDto), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiErrorDto), StatusCodes.Status500InternalServerError)]
+    public IActionResult CreateBooking([FromBody] BookingDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var result = service.CreateBooking(request);
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new ApiErrorDto { Message = result.Error ?? "Room not found." }),
+                OperationErrorCode.Conflict => Conflict(new ApiErrorDto { Message = result.Error ?? "The room is already booked for this time slot." }),
+                OperationErrorCode.ValidationFailed => BadRequest(new ValidationProblemDetails
+                {
+                    Title = "Validation failed.",
+                    Detail = result.Error,
+                    Status = StatusCodes.Status400BadRequest
+                }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorDto { Message = "An internal server error occurred." })
+            };
+        }
+
+        return Ok(result.Value);
+    }
+}

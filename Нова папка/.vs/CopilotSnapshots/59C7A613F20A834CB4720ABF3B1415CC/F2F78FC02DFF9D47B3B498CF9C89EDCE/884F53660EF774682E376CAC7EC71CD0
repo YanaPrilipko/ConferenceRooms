@@ -1,0 +1,44 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services;
+using ConferenceRooms.Services.Results;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConferenceRooms.Controllers;
+
+/// <summary>
+/// Provides reporting endpoints for business analytics.
+/// </summary>
+[ApiController]
+[Route("api/reports")]
+[Produces("application/json")]
+public class ReportsController(IConferenceRoomService service) : ControllerBase
+{
+    /// <summary>
+    /// Returns conference room utilization report for a selected period.
+    /// </summary>
+    /// <param name="from">Report start date and time.</param>
+    /// <param name="to">Report end date and time.</param>
+    /// <returns>Room utilization metrics.</returns>
+    [HttpGet("room-utilization")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<RoomUtilizationReportDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorDto), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiErrorDto), StatusCodes.Status500InternalServerError)]
+    public IActionResult GetRoomUtilization([FromQuery] DateTime from, [FromQuery] DateTime to)
+    {
+        var result = service.GetRoomUtilizationReport(from, to);
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new ApiErrorDto { Message = result.Error ?? "Not found." }),
+                OperationErrorCode.Conflict => Conflict(new ApiErrorDto { Message = result.Error ?? "Conflict error." }),
+                OperationErrorCode.ValidationFailed => BadRequest(new ApiErrorDto { Message = result.Error ?? "Validation failed." }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorDto { Message = "An internal server error occurred." })
+            };
+        }
+
+        return Ok(result.Value);
+    }
+}

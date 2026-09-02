@@ -1,0 +1,42 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services;
+using ConferenceRooms.Services.Results;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConferenceRooms.Controllers;
+
+/// <summary>
+/// Provides endpoints for creating conference room bookings.
+/// </summary>
+[ApiController]
+[Route("api/bookings")]
+public class BookingsController(IConferenceRoomService service) : ControllerBase
+{
+    /// <summary>
+    /// Creates a new booking for a conference room.
+    /// </summary>
+    /// <param name="request">Booking data.</param>
+    /// <returns>Booking creation result.</returns>
+    [HttpPost]
+    public IActionResult CreateBooking([FromBody] BookingDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var result = service.CreateBooking(request);
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+                OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+                OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Internal server error occurred." })
+            };
+        }
+
+        return Ok(result.Value);
+    }
+}

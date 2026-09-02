@@ -1,0 +1,335 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Data;
+using ConferenceRooms.Models;
+using ConferenceRooms.Services.Results;
+using Microsoft.EntityFrameworkCore;
+
+namespace ConferenceRooms.Services;
+
+public class ConferenceRoomService(
+    ConferenceRoomsDbContext dbContext,
+    IBookingCostCalculator bookingCostCalculator,
+    IRoomReportsService reportsService) : IConferenceRoomService
+{
+    private const int MaxServiceCountPerRequest = 20;
+
+    public IReadOnlyCollection<RoomDto> GetRooms()
+    {
+        return dbContext.Rooms
+            .AsNoTracking()
+            .Include(r => r.Services)
+            .Select(MapRoomToDto)
+            .ToList();
+    }
+
+    public OperationResult<Guid> CreateRoom(RoomDto request)
+    {
+        var validationResult = ValidateRoomRequest(request);
+        if (!validationResult.Success)
+        {
+            return OperationResult<Guid>.Fail(validationResult.Error ?? "Invalid request.", validationResult.ErrorCode);
+        }
+
+        var room = new ConferenceRoom
+        {
+            Id = Guid.NewGuid(),
+            Name = NormalizeName(request.Name),
+            Capacity = request.Capacity,
+            BaseHourlyRate = request.BaseHourlyRate,
+            Services = BuildServices(request.Services)
+        };
+
+        dbContext.Rooms.Add(room);
+        dbContext.SaveChanges();
+
+        return OperationResult<Guid>.Ok(room.Id);
+    }
+
+    public OperationResult UpdateRoom(Guid id, RoomDto request)
+    {
+        var validationResult = ValidateRoomRequest(request);
+        if (!validationResult.Success)
+        {
+            return OperationResult.Fail(validationResult.Error ?? "Invalid request.", validationResult.ErrorCode);
+        }
+
+        var room = dbContext.Rooms.FirstOrDefault(r => r.Id == id);
+
+        if (room is null)
+        {
+            return OperationResult.Fail("Room not found.", OperationErrorCode.NotFound);
+        }
+
+        room.Name = NormalizeName(request.Name);
+        room.Capacity = request.Capacity;
+        room.BaseHourlyRate = request.BaseHourlyRate;
+
+        var updatedServices = BuildServices(request.Services);
+
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
+        {
+            dbContext.SaveChanges();
+
+            dbContext.Database.ExecuteSqlInterpolated($"DELETE FROM \"RoomServices\" WHERE \"RoomId\" = {id}");
+
+            foreach (var service in updatedServices)
+            {
+                dbContext.Database.ExecuteSqlInterpolated(
+                    $"INSERT INTO \"RoomServices\" (\"Id\", \"Name\", \"Price\", \"RoomId\") VALUES ({service.Id}, {service.Name}, {service.Price}, {id})");
+            }
+
+            transaction.Commit();
+            return OperationResult.Ok();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            transaction.Rollback();
+            return OperationResult.Fail(
+                "Room was changed by another operation. Reload data and try again.",
+                OperationErrorCode.Conflict);
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+    public OperationResult DeleteRoom(Guid id)
+    {
+        var room = dbContext.Rooms.FirstOrDefault(r => r.Id == id);
+        if (room is null)
+        {
+            return OperationResult.Fail("Room not found.", OperationErrorCode.NotFound);
+        }
+
+        dbContext.Rooms.Remove(room);
+        dbContext.SaveChanges();
+        return OperationResult.Ok();
+    }
+
+    public OperationResult<IReadOnlyCollection<RoomDto>> FindAvailableRooms(DateTime start, DateTime end, int capacity)
+    {
+        if (end <= start)
+        {
+            return OperationResult<IReadOnlyCollection<RoomDto>>.Fail(
+                "End time must be later than start time.",
+                OperationErrorCode.ValidationFailed);
+        }
+
+        if (capacity < 1)
+        {
+            return OperationResult<IReadOnlyCollection<RoomDto>>.Fail(
+                "Capacity must be greater than zero.",
+                OperationErrorCode.ValidationFailed);
+        }
+
+        var available = dbContext.Rooms
+            .AsNoTracking()
+            .Include(r => r.Services)
+            .Where(r => r.Capacity >= capacity)
+            .Where(r => !dbContext.Bookings.Any(b => b.RoomId == r.Id && IsOverlapping(start, end, b.Start, b.End)))
+            .Select(MapRoomToDto)
+            .ToList();
+
+        return OperationResult<IReadOnlyCollection<RoomDto>>.Ok(available);
+    }
+
+    public OperationResult<BookingDto> CreateBooking(BookingDto request)
+    {
+        var bookingValidation = ValidateBookingRequest(request);
+        if (!bookingValidation.Success)
+        {
+            return OperationResult<BookingDto>.Fail(bookingValidation.Error ?? "Invalid request.", bookingValidation.ErrorCode);
+        }
+
+        var room = dbContext.Rooms
+            .Include(r => r.Services)
+            .FirstOrDefault(r => r.Id == request.RoomId);
+
+        if (room is null)
+        {
+            return OperationResult<BookingDto>.Fail("Room not found.", OperationErrorCode.NotFound);
+        }
+
+        var end = request.Start.AddHours(request.DurationHours);
+        var overlap = dbContext.Bookings.Any(b =>
+            b.RoomId == room.Id &&
+            request.Start < b.End &&
+            end > b.Start);
+        if (overlap)
+        {
+            return OperationResult<BookingDto>.Fail("The room is already booked for this time slot.", OperationErrorCode.Conflict);
+        }
+
+        var selectedServiceNames = request.SelectedServiceNames
+            .Select(NormalizeName)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var selectedServices = room.Services
+            .Where(s => selectedServiceNames.Contains(s.Name))
+            .Select(CloneService)
+            .ToList();
+
+        var costs = bookingCostCalculator.Calculate(room.BaseHourlyRate, request.Start, end, selectedServices);
+
+        var booking = new Booking
+        {
+            Id = Guid.NewGuid(),
+            RoomId = room.Id,
+            RoomName = room.Name,
+            Start = request.Start,
+            End = end,
+            DurationHours = request.DurationHours,
+            Services = selectedServices,
+            RentalCost = costs.RentalCost,
+            ServicesCost = costs.ServicesCost,
+            TotalCost = costs.TotalCost
+        };
+
+        dbContext.Bookings.Add(booking);
+        dbContext.SaveChanges();
+
+        var response = new BookingDto
+        {
+            Id = booking.Id,
+            RoomId = booking.RoomId,
+            RoomName = booking.RoomName,
+            Start = booking.Start,
+            End = booking.End,
+            DurationHours = booking.DurationHours,
+            SelectedServiceNames = selectedServices.Select(s => s.Name).ToList(),
+            SelectedServices = booking.Services.Select(MapServiceToDto).ToList(),
+            RentalCost = booking.RentalCost,
+            ServicesCost = booking.ServicesCost,
+            TotalCost = booking.TotalCost,
+            Message = "Booking created successfully."
+        };
+
+        return OperationResult<BookingDto>.Ok(response);
+    }
+
+    public OperationResult<IReadOnlyCollection<RoomUtilizationReportDto>> GetRoomUtilizationReport(DateTime from, DateTime to)
+    {
+        return reportsService.GetRoomUtilizationReport(from, to);
+    }
+
+    private OperationResult ValidateRoomRequest(RoomDto request)
+    {
+        if (request is null)
+        {
+            return OperationResult.Fail("Request body is required.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return OperationResult.Fail("Room name is required.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.Capacity < 1)
+        {
+            return OperationResult.Fail("Capacity must be greater than zero.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.BaseHourlyRate <= 0)
+        {
+            return OperationResult.Fail("Base hourly rate must be greater than zero.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.Services.Count > MaxServiceCountPerRequest)
+        {
+            return OperationResult.Fail("Too many services in request.", OperationErrorCode.ValidationFailed);
+        }
+
+        return OperationResult.Ok();
+    }
+
+    private OperationResult ValidateBookingRequest(BookingDto request)
+    {
+        if (request is null)
+        {
+            return OperationResult.Fail("Request body is required.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.RoomId == Guid.Empty)
+        {
+            return OperationResult.Fail("Room identifier is required.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.DurationHours is < 0.5 or > 24)
+        {
+            return OperationResult.Fail("Duration must be between 0.5 and 24 hours.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.SelectedServiceNames.Count > MaxServiceCountPerRequest)
+        {
+            return OperationResult.Fail("Too many selected services in request.", OperationErrorCode.ValidationFailed);
+        }
+
+        return OperationResult.Ok();
+    }
+
+    private List<ServiceOption> BuildServices(IEnumerable<ServiceOptionDto> services)
+    {
+        return services
+            .Where(IsServiceDtoValid)
+            .Select(s => new ServiceOption
+            {
+                Id = Guid.NewGuid(),
+                Name = NormalizeName(s.Name),
+                Price = s.Price
+            })
+            .GroupBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+    }
+
+    private bool IsServiceDtoValid(ServiceOptionDto service)
+    {
+        return service is not null && !string.IsNullOrWhiteSpace(service.Name) && service.Price >= 0;
+    }
+
+    private string NormalizeName(string value)
+    {
+        return value.Trim();
+    }
+
+    private bool IsOverlapping(DateTime startA, DateTime endA, DateTime startB, DateTime endB)
+    {
+        return startA < endB && endA > startB;
+    }
+
+    private RoomDto MapRoomToDto(ConferenceRoom room)
+    {
+        return new RoomDto
+        {
+            Id = room.Id,
+            Name = room.Name,
+            Capacity = room.Capacity,
+            BaseHourlyRate = room.BaseHourlyRate,
+            Services = room.Services.Select(MapServiceToDto).ToList()
+        };
+    }
+
+    private ServiceOptionDto MapServiceToDto(ServiceOption service)
+    {
+        return new ServiceOptionDto
+        {
+            Id = service.Id,
+            Name = service.Name,
+            Price = service.Price
+        };
+    }
+
+    private ServiceOption CloneService(ServiceOption service)
+    {
+        return new ServiceOption
+        {
+            Id = Guid.NewGuid(),
+            Name = service.Name,
+            Price = service.Price
+        };
+    }
+}

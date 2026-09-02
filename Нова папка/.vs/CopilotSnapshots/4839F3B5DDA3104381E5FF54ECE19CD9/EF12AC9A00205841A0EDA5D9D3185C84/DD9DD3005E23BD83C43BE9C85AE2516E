@@ -1,0 +1,87 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services;
+using ConferenceRooms.Services.Results;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConferenceRooms.Controllers;
+
+[ApiController]
+[Route("api/rooms")]
+public class RoomsController(IConferenceRoomService service) : ControllerBase
+{
+    [HttpGet]
+    public IActionResult GetRooms()
+    {
+        var rooms = service.GetRooms();
+        return Ok(rooms);
+    }
+
+    [HttpPost]
+    public IActionResult CreateRoom([FromBody] RoomDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var result = service.CreateRoom(request);
+        if (!result.Success)
+        {
+            return ToActionResult(result);
+        }
+
+        return CreatedAtAction(nameof(GetRooms), new { id = result.Value }, new { Id = result.Value, Message = "Зал успішно створено." });
+    }
+
+    [HttpPut("{id:guid}")]
+    public IActionResult UpdateRoom(Guid id, [FromBody] RoomDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var result = service.UpdateRoom(id, request);
+        if (!result.Success)
+        {
+            return ToActionResult(result);
+        }
+
+        return Ok(new { Id = id, Message = "Інформацію про зал оновлено." });
+    }
+
+    [HttpDelete("{id:guid}")]
+    public IActionResult DeleteRoom(Guid id)
+    {
+        var result = service.DeleteRoom(id);
+        if (!result.Success)
+        {
+            return ToActionResult(result);
+        }
+
+        return Ok(new { Message = "Зал видалено." });
+    }
+
+    [HttpGet("available")]
+    public IActionResult GetAvailableRooms([FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] int capacity)
+    {
+        var result = service.FindAvailableRooms(start, end, capacity);
+        if (!result.Success)
+        {
+            return ToActionResult(result);
+        }
+
+        return Ok(result.Value);
+    }
+
+    private IActionResult ToActionResult(OperationResult result)
+    {
+        return result.ErrorCode switch
+        {
+            OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+            OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+            OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Виникла внутрішня помилка." })
+        };
+    }
+}

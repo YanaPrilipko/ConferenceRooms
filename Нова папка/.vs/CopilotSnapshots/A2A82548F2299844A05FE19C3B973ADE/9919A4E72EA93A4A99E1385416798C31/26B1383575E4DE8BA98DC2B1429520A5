@@ -1,0 +1,137 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Models;
+using ConferenceRooms.Services.Results;
+
+namespace ConferenceRooms.Services;
+
+public class ConferenceRoomBusinessLogic : IConferenceRoomBusinessLogic
+{
+    private const int MaxServiceCountPerRequest = 20;
+
+    public OperationResult ValidateRoomRequest(RoomDto request)
+    {
+        if (request is null)
+        {
+            return OperationResult.Fail("Тіло запиту є обов'язковим.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return OperationResult.Fail("Назва залу є обов'язковою.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.Capacity < 1)
+        {
+            return OperationResult.Fail("Місткість має бути більше нуля.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.BaseHourlyRate <= 0)
+        {
+            return OperationResult.Fail("Базова погодинна ставка має бути більше нуля.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.Services.Count > MaxServiceCountPerRequest)
+        {
+            return OperationResult.Fail("Забагато сервісів у запиті.", OperationErrorCode.ValidationFailed);
+        }
+
+        return OperationResult.Ok();
+    }
+
+    public OperationResult ValidateBookingRequest(BookingDto request)
+    {
+        if (request is null)
+        {
+            return OperationResult.Fail("Тіло запиту є обов'язковим.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.RoomId == Guid.Empty)
+        {
+            return OperationResult.Fail("Ідентифікатор залу є обов'язковим.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.DurationHours is < 0.5 or > 24)
+        {
+            return OperationResult.Fail("Тривалість має бути в межах від 0.5 до 24 годин.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.SelectedServiceNames.Count > MaxServiceCountPerRequest)
+        {
+            return OperationResult.Fail("Забагато обраних сервісів у запиті.", OperationErrorCode.ValidationFailed);
+        }
+
+        return OperationResult.Ok();
+    }
+
+    public List<ServiceOption> BuildServices(IEnumerable<ServiceOptionDto> services)
+    {
+        return services
+            .Where(IsServiceDtoValid)
+            .Select(s => new ServiceOption
+            {
+                Id = Guid.NewGuid(),
+                Name = NormalizeName(s.Name),
+                Price = s.Price
+            })
+            .GroupBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+    }
+
+    public string NormalizeName(string value)
+    {
+        return value.Trim();
+    }
+
+    public bool IsOverlapping(DateTime startA, DateTime endA, DateTime startB, DateTime endB)
+    {
+        return startA < endB && endA > startB;
+    }
+
+    public double CalculateOverlapHours(DateTime bookingStart, DateTime bookingEnd, DateTime from, DateTime to)
+    {
+        var overlapStart = bookingStart > from ? bookingStart : from;
+        var overlapEnd = bookingEnd < to ? bookingEnd : to;
+
+        return overlapEnd > overlapStart
+            ? (overlapEnd - overlapStart).TotalHours
+            : 0;
+    }
+
+    public RoomDto MapRoomToDto(ConferenceRoom room)
+    {
+        return new RoomDto
+        {
+            Id = room.Id,
+            Name = room.Name,
+            Capacity = room.Capacity,
+            BaseHourlyRate = room.BaseHourlyRate,
+            Services = room.Services.Select(MapServiceToDto).ToList()
+        };
+    }
+
+    public ServiceOptionDto MapServiceToDto(ServiceOption service)
+    {
+        return new ServiceOptionDto
+        {
+            Id = service.Id,
+            Name = service.Name,
+            Price = service.Price
+        };
+    }
+
+    public ServiceOption CloneService(ServiceOption service)
+    {
+        return new ServiceOption
+        {
+            Id = Guid.NewGuid(),
+            Name = service.Name,
+            Price = service.Price
+        };
+    }
+
+    private bool IsServiceDtoValid(ServiceOptionDto service)
+    {
+        return service is not null && !string.IsNullOrWhiteSpace(service.Name) && service.Price >= 0;
+    }
+}

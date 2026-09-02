@@ -1,7 +1,40 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\project_documentation.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\project_documentation.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\services\\iconferenceroomservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\services\\iconferenceroomservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\controllers\\reportscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\controllers\\reportscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\services\\roomreportsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\services\\roomreportsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\services\\iroomreportsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\services\\iroomreportsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\conferencerooms.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\conferencerooms.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|c:\\conference rooms\\conferencerooms\\\u043D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\conferencerooms\\dto\\roomutilizationreportdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE459D2E-7F7D-4342-9713-08EC9EC492BE}|ConferenceRooms\\ConferenceRooms.csproj|solutionrelative:conferencerooms\\dto\\roomutilizationreportdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +42,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -22,6 +55,106 @@
             {
               "$type": "Bookmark",
               "Name": "ST:129:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "PROJECT_DOCUMENTATION.md",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\PROJECT_DOCUMENTATION.md",
+              "RelativeDocumentMoniker": "ConferenceRooms\\PROJECT_DOCUMENTATION.md",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\PROJECT_DOCUMENTATION.md",
+              "RelativeToolTip": "ConferenceRooms\\PROJECT_DOCUMENTATION.md",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAAD0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-09-02T10:24:03.331Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IConferenceRoomService.cs",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Services\\IConferenceRoomService.cs",
+              "RelativeDocumentMoniker": "ConferenceRooms\\Services\\IConferenceRoomService.cs",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Services\\IConferenceRoomService.cs",
+              "RelativeToolTip": "ConferenceRooms\\Services\\IConferenceRoomService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-01T18:37:39.72Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RoomReportsService.cs",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Services\\RoomReportsService.cs",
+              "RelativeDocumentMoniker": "ConferenceRooms\\Services\\RoomReportsService.cs",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Services\\RoomReportsService.cs",
+              "RelativeToolTip": "ConferenceRooms\\Services\\RoomReportsService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwE4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-01T18:37:59.34Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IRoomReportsService.cs",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Services\\IRoomReportsService.cs",
+              "RelativeDocumentMoniker": "ConferenceRooms\\Services\\IRoomReportsService.cs",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Services\\IRoomReportsService.cs",
+              "RelativeToolTip": "ConferenceRooms\\Services\\IRoomReportsService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-01T18:37:55.851Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ReportsController.cs",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Controllers\\ReportsController.cs",
+              "RelativeDocumentMoniker": "ConferenceRooms\\Controllers\\ReportsController.cs",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Controllers\\ReportsController.cs",
+              "RelativeToolTip": "ConferenceRooms\\Controllers\\ReportsController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-01T18:37:42.097Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Program.cs",
+              "RelativeDocumentMoniker": "ConferenceRooms\\Program.cs",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\Program.cs",
+              "RelativeToolTip": "ConferenceRooms\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-01T18:38:09.456Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ConferenceRooms.csproj",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\ConferenceRooms.csproj",
+              "RelativeDocumentMoniker": "ConferenceRooms\\ConferenceRooms.csproj",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\ConferenceRooms.csproj",
+              "RelativeToolTip": "ConferenceRooms\\ConferenceRooms.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-09-01T18:51:46.471Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "RoomUtilizationReportDto.cs",
+              "DocumentMoniker": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\DTO\\RoomUtilizationReportDto.cs",
+              "RelativeDocumentMoniker": "ConferenceRooms\\DTO\\RoomUtilizationReportDto.cs",
+              "ToolTip": "C:\\Conference Rooms\\ConferenceRooms\\\u041D\u043E\u0432\u0430 \u043F\u0430\u043F\u043A\u0430\\ConferenceRooms\\DTO\\RoomUtilizationReportDto.cs",
+              "RelativeToolTip": "ConferenceRooms\\DTO\\RoomUtilizationReportDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-01T18:37:41.139Z"
             }
           ]
         }

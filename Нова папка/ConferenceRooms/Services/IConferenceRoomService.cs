@@ -11,4 +11,5 @@ public interface IConferenceRoomService
     OperationResult DeleteRoom(Guid id);
     OperationResult<IReadOnlyCollection<RoomDto>> FindAvailableRooms(DateTime start, DateTime end, int capacity);
     OperationResult<BookingDto> CreateBooking(BookingDto request);
+    OperationResult<IReadOnlyCollection<RoomUtilizationReportDto>> GetRoomUtilizationReport(DateTime from, DateTime to);
 }

@@ -6,74 +6,102 @@
     <members>
         <member name="T:ConferenceRooms.Controllers.BookingsController">
             <summary>
-            Керує створенням бронювань конференц-залів.
+            Provides endpoints for creating conference room bookings.
             </summary>
         </member>
         <member name="M:ConferenceRooms.Controllers.BookingsController.#ctor(ConferenceRooms.Services.IConferenceRoomService)">
             <summary>
-            Керує створенням бронювань конференц-залів.
+            Provides endpoints for creating conference room bookings.
             </summary>
         </member>
         <member name="M:ConferenceRooms.Controllers.BookingsController.CreateBooking(ConferenceRooms.Contracts.BookingDto)">
             <summary>
-            Створює бронювання з розрахунком вартості.
+            Creates a new booking for a conference room.
             </summary>
-            <param name="request">Параметри бронювання.</param>
-            <returns>Створене бронювання з підсумковою вартістю.</returns>
+            <param name="request">Booking data.</param>
+            <returns>Booking creation result.</returns>
+            <response code="200">Booking created successfully.</response>
+            <response code="400">Validation failed.</response>
+            <response code="404">Room not found.</response>
+            <response code="409">Room is already booked for selected time slot.</response>
+            <response code="500">Internal server error.</response>
+        </member>
+        <member name="T:ConferenceRooms.Controllers.ReportsController">
+            <summary>
+            Provides reporting endpoints for business analytics.
+            </summary>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.ReportsController.#ctor(ConferenceRooms.Services.IConferenceRoomService)">
+            <summary>
+            Provides reporting endpoints for business analytics.
+            </summary>
+        </member>
+        <member name="M:ConferenceRooms.Controllers.ReportsController.GetRoomUtilization(System.DateTime,System.DateTime)">
+            <summary>
+            Returns conference room utilization report for a selected period.
+            </summary>
+            <param name="from">Report start date and time.</param>
+            <param name="to">Report end date and time.</param>
+            <returns>Room utilization metrics.</returns>
         </member>
         <member name="T:ConferenceRooms.Controllers.RoomsController">
             <summary>
-            Керує конференц-залами: створенням, оновленням, видаленням та пошуком доступних залів.
+            Provides endpoints for managing conference rooms.
             </summary>
         </member>
         <member name="M:ConferenceRooms.Controllers.RoomsController.#ctor(ConferenceRooms.Services.IConferenceRoomService)">
             <summary>
-            Керує конференц-залами: створенням, оновленням, видаленням та пошуком доступних залів.
+            Provides endpoints for managing conference rooms.
             </summary>
         </member>
         <member name="M:ConferenceRooms.Controllers.RoomsController.GetRooms">
             <summary>
-            Повертає список усіх залів.
+            Returns all conference rooms.
             </summary>
-            <returns>Колекція залів.</returns>
-        </member>
-        <member name="M:ConferenceRooms.Controllers.RoomsController.GetRoom(System.Guid)">
-            <summary>
-            Повертає зал за ідентифікатором.
-            </summary>
-            <param name="id">Ідентифікатор залу.</param>
-            <returns>Зал або помилку, якщо його не знайдено.</returns>
+            <returns>List of conference rooms.</returns>
         </member>
         <member name="M:ConferenceRooms.Controllers.RoomsController.CreateRoom(ConferenceRooms.Contracts.RoomDto)">
             <summary>
-            Створює новий конференц-зал.
+            Creates a new conference room.
             </summary>
-            <param name="request">Дані залу.</param>
-            <returns>Ідентифікатор створеного залу.</returns>
+            <param name="request">Conference room data.</param>
+            <returns>Created room identifier and status message.</returns>
         </member>
         <member name="M:ConferenceRooms.Controllers.RoomsController.UpdateRoom(System.Guid,ConferenceRooms.Contracts.RoomDto)">
             <summary>
-            Оновлює дані конференц-залу.
+            Updates an existing conference room.
             </summary>
-            <param name="id">Ідентифікатор залу.</param>
-            <param name="request">Оновлені дані.</param>
-            <returns>Підтвердження оновлення.</returns>
+            <param name="id">Conference room identifier.</param>
+            <param name="request">Updated conference room data.</param>
+            <returns>Operation result message.</returns>
         </member>
         <member name="M:ConferenceRooms.Controllers.RoomsController.DeleteRoom(System.Guid)">
             <summary>
-            Видаляє конференц-зал.
+            Deletes a conference room.
             </summary>
-            <param name="id">Ідентифікатор залу.</param>
-            <returns>Підтвердження видалення.</returns>
+            <param name="id">Conference room identifier.</param>
+            <returns>Operation result message.</returns>
         </member>
         <member name="M:ConferenceRooms.Controllers.RoomsController.GetAvailableRooms(System.DateTime,System.DateTime,System.Int32)">
             <summary>
-            Повертає доступні зали для заданого проміжку часу та місткості.
+            Finds conference rooms available for the specified period and capacity.
             </summary>
-            <param name="start">Дата та час початку.</param>
-            <param name="end">Дата та час завершення.</param>
-            <param name="capacity">Мінімальна місткість.</param>
-            <returns>Список доступних залів.</returns>
+            <param name="start">Start date and time of the booking interval.</param>
+            <param name="end">End date and time of the booking interval.</param>
+            <param name="capacity">Required room capacity.</param>
+            <returns>List of available conference rooms.</returns>
+        </member>
+        <member name="T:ConferenceRooms.Migrations.ConferenceRooms">
+            <inheritdoc />
+        </member>
+        <member name="M:ConferenceRooms.Migrations.ConferenceRooms.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ConferenceRooms.Migrations.ConferenceRooms.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ConferenceRooms.Migrations.ConferenceRooms.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
         </member>
     </members>
 </doc>

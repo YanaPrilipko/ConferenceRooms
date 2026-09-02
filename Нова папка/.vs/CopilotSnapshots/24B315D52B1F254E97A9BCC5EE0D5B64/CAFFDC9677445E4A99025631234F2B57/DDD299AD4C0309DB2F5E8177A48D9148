@@ -1,0 +1,11 @@
+﻿{
+  "ConnectionStrings": {
+    "ConferenceRoomsDb": "Data Source=conference-rooms.dev.db"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}

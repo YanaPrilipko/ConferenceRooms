@@ -1,0 +1,18 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Models;
+using ConferenceRooms.Services.Results;
+
+namespace ConferenceRooms.Services;
+
+public interface IConferenceRoomBusinessLogic
+{
+    OperationResult ValidateRoomRequest(RoomDto request);
+    OperationResult ValidateBookingRequest(BookingDto request);
+    List<ServiceOption> BuildServices(IEnumerable<ServiceOptionDto> services);
+    string NormalizeName(string value);
+    bool IsOverlapping(DateTime startA, DateTime endA, DateTime startB, DateTime endB);
+    double CalculateOverlapHours(DateTime bookingStart, DateTime bookingEnd, DateTime from, DateTime to);
+    RoomDto MapRoomToDto(ConferenceRoom room);
+    ServiceOptionDto MapServiceToDto(ServiceOption service);
+    ServiceOption CloneService(ServiceOption service);
+}

@@ -1,0 +1,343 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Data;
+using ConferenceRooms.Models;
+using ConferenceRooms.Services.Results;
+using Microsoft.EntityFrameworkCore;
+
+namespace ConferenceRooms.Services;
+
+public class ConferenceRoomService(ConferenceRoomsDbContext dbContext) : IConferenceRoomService
+{
+    private const int MaxServiceCountPerRequest = 20;
+
+    public IReadOnlyCollection<RoomDto> GetRooms()
+    {
+        return dbContext.Rooms
+            .AsNoTracking()
+            .Include(r => r.Services)
+            .Select(MapRoomToDto)
+            .ToList();
+    }
+
+    public OperationResult<Guid> CreateRoom(RoomDto request)
+    {
+        var validationError = ValidateRoomRequest(request);
+        if (validationError is not null)
+        {
+            return validationError;
+        }
+
+        var room = new ConferenceRoom
+        {
+            Id = Guid.NewGuid(),
+            Name = NormalizeName(request.Name),
+            Capacity = request.Capacity,
+            BaseHourlyRate = request.BaseHourlyRate,
+            Services = BuildServices(request.Services)
+        };
+
+        dbContext.Rooms.Add(room);
+        dbContext.SaveChanges();
+
+        return OperationResult<Guid>.Ok(room.Id);
+    }
+
+    public OperationResult UpdateRoom(Guid id, RoomDto request)
+    {
+        var validationError = ValidateRoomRequest(request);
+        if (validationError is not null)
+        {
+            return OperationResult.Fail(validationError.Error ?? "Некоректний запит.", validationError.ErrorCode);
+        }
+
+        var room = dbContext.Rooms
+            .Include(r => r.Services)
+            .FirstOrDefault(r => r.Id == id);
+
+        if (room is null)
+        {
+            return OperationResult.Fail("Зал не знайдено.", OperationErrorCode.NotFound);
+        }
+
+        room.Name = NormalizeName(request.Name);
+        room.Capacity = request.Capacity;
+        room.BaseHourlyRate = request.BaseHourlyRate;
+        room.Services = BuildServices(request.Services);
+
+        dbContext.SaveChanges();
+        return OperationResult.Ok();
+    }
+
+    public OperationResult DeleteRoom(Guid id)
+    {
+        var room = dbContext.Rooms.FirstOrDefault(r => r.Id == id);
+        if (room is null)
+        {
+            return OperationResult.Fail("Зал не знайдено.", OperationErrorCode.NotFound);
+        }
+
+        dbContext.Rooms.Remove(room);
+        dbContext.SaveChanges();
+        return OperationResult.Ok();
+    }
+
+    public OperationResult<IReadOnlyCollection<RoomDto>> FindAvailableRooms(DateTime start, DateTime end, int capacity)
+    {
+        if (end <= start)
+        {
+            return OperationResult<IReadOnlyCollection<RoomDto>>.Fail(
+                "Кінцевий час має бути пізніше за початковий.",
+                OperationErrorCode.ValidationFailed);
+        }
+
+        if (capacity < 1)
+        {
+            return OperationResult<IReadOnlyCollection<RoomDto>>.Fail(
+                "Місткість має бути більше нуля.",
+                OperationErrorCode.ValidationFailed);
+        }
+
+        var available = dbContext.Rooms
+            .AsNoTracking()
+            .Include(r => r.Services)
+            .Where(r => r.Capacity >= capacity)
+            .Where(r => !dbContext.Bookings.Any(b => b.RoomId == r.Id && IsOverlapping(start, end, b.Start, b.End)))
+            .Select(MapRoomToDto)
+            .ToList();
+
+        return OperationResult<IReadOnlyCollection<RoomDto>>.Ok(available);
+    }
+
+    public OperationResult<BookingDto> CreateBooking(BookingDto request)
+    {
+        var bookingValidation = ValidateBookingRequest(request);
+        if (bookingValidation is not null)
+        {
+            return bookingValidation;
+        }
+
+        var room = dbContext.Rooms
+            .Include(r => r.Services)
+            .FirstOrDefault(r => r.Id == request.RoomId);
+
+        if (room is null)
+        {
+            return OperationResult<BookingDto>.Fail("Зал не знайдено.", OperationErrorCode.NotFound);
+        }
+
+        var end = request.Start.AddHours(request.DurationHours);
+        var overlap = dbContext.Bookings.Any(b => b.RoomId == room.Id && IsOverlapping(request.Start, end, b.Start, b.End));
+        if (overlap)
+        {
+            return OperationResult<BookingDto>.Fail("На цей час зал вже заброньовано.", OperationErrorCode.Conflict);
+        }
+
+        var selectedServiceNames = request.SelectedServiceNames
+            .Select(NormalizeName)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var selectedServices = room.Services
+            .Where(s => selectedServiceNames.Contains(s.Name))
+            .Select(CloneService)
+            .ToList();
+
+        var rentalCost = CalculateRentalCost(room.BaseHourlyRate, request.Start, end);
+        var servicesCost = selectedServices.Sum(s => s.Price);
+        var totalCost = rentalCost + servicesCost;
+
+        var booking = new Booking
+        {
+            Id = Guid.NewGuid(),
+            RoomId = room.Id,
+            RoomName = room.Name,
+            Start = request.Start,
+            End = end,
+            DurationHours = request.DurationHours,
+            Services = selectedServices,
+            RentalCost = decimal.Round(rentalCost, 2),
+            ServicesCost = decimal.Round(servicesCost, 2),
+            TotalCost = decimal.Round(totalCost, 2)
+        };
+
+        dbContext.Bookings.Add(booking);
+        dbContext.SaveChanges();
+
+        var response = new BookingDto
+        {
+            Id = booking.Id,
+            RoomId = booking.RoomId,
+            RoomName = booking.RoomName,
+            Start = booking.Start,
+            End = booking.End,
+            DurationHours = booking.DurationHours,
+            SelectedServiceNames = selectedServices.Select(s => s.Name).ToList(),
+            SelectedServices = booking.Services.Select(MapServiceToDto).ToList(),
+            RentalCost = booking.RentalCost,
+            ServicesCost = booking.ServicesCost,
+            TotalCost = booking.TotalCost,
+            Message = "Бронювання успішне."
+        };
+
+        return OperationResult<BookingDto>.Ok(response);
+    }
+
+    private OperationResult<Guid>? ValidateRoomRequest(RoomDto request)
+    {
+        if (request is null)
+        {
+            return OperationResult<Guid>.Fail("Тіло запиту є обов'язковим.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return OperationResult<Guid>.Fail("Назва залу є обов'язковою.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.Capacity < 1)
+        {
+            return OperationResult<Guid>.Fail("Місткість має бути більше нуля.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.BaseHourlyRate <= 0)
+        {
+            return OperationResult<Guid>.Fail("Базова погодинна ставка має бути більше нуля.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.Services.Count > MaxServiceCountPerRequest)
+        {
+            return OperationResult<Guid>.Fail("Забагато сервісів у запиті.", OperationErrorCode.ValidationFailed);
+        }
+
+        return null;
+    }
+
+    private OperationResult<BookingDto>? ValidateBookingRequest(BookingDto request)
+    {
+        if (request is null)
+        {
+            return OperationResult<BookingDto>.Fail("Тіло запиту є обов'язковим.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.RoomId == Guid.Empty)
+        {
+            return OperationResult<BookingDto>.Fail("Ідентифікатор залу є обов'язковим.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.DurationHours is < 0.5 or > 24)
+        {
+            return OperationResult<BookingDto>.Fail("Тривалість має бути в межах від 0.5 до 24 годин.", OperationErrorCode.ValidationFailed);
+        }
+
+        if (request.SelectedServiceNames.Count > MaxServiceCountPerRequest)
+        {
+            return OperationResult<BookingDto>.Fail("Забагато обраних сервісів у запиті.", OperationErrorCode.ValidationFailed);
+        }
+
+        return null;
+    }
+
+    private List<ServiceOption> BuildServices(IEnumerable<ServiceOptionDto> services)
+    {
+        return services
+            .Where(IsServiceDtoValid)
+            .Select(s => new ServiceOption
+            {
+                Id = Guid.NewGuid(),
+                Name = NormalizeName(s.Name),
+                Price = s.Price
+            })
+            .GroupBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+    }
+
+    private bool IsServiceDtoValid(ServiceOptionDto service)
+    {
+        return service is not null && !string.IsNullOrWhiteSpace(service.Name) && service.Price >= 0;
+    }
+
+    private string NormalizeName(string value)
+    {
+        return value.Trim();
+    }
+
+    private bool IsOverlapping(DateTime startA, DateTime endA, DateTime startB, DateTime endB)
+    {
+        return startA < endB && endA > startB;
+    }
+
+    private decimal CalculateRentalCost(decimal baseHourlyRate, DateTime start, DateTime end)
+    {
+        var total = 0m;
+        var current = start;
+
+        while (current < end)
+        {
+            var next = current.AddMinutes(30);
+            if (next > end)
+            {
+                next = end;
+            }
+
+            var hours = (decimal)(next - current).TotalHours;
+            var multiplier = GetMultiplier(current.TimeOfDay);
+            total += baseHourlyRate * multiplier * hours;
+            current = next;
+        }
+
+        return total;
+    }
+
+    private decimal GetMultiplier(TimeSpan time)
+    {
+        if (time >= new TimeSpan(18, 0, 0) && time < new TimeSpan(23, 0, 0))
+        {
+            return 0.8m;
+        }
+
+        if (time >= new TimeSpan(6, 0, 0) && time < new TimeSpan(9, 0, 0))
+        {
+            return 0.9m;
+        }
+
+        if (time >= new TimeSpan(12, 0, 0) && time < new TimeSpan(14, 0, 0))
+        {
+            return 1.2m;
+        }
+
+        return 1.0m;
+    }
+
+    private RoomDto MapRoomToDto(ConferenceRoom room)
+    {
+        return new RoomDto
+        {
+            Id = room.Id,
+            Name = room.Name,
+            Capacity = room.Capacity,
+            BaseHourlyRate = room.BaseHourlyRate,
+            Services = room.Services.Select(MapServiceToDto).ToList()
+        };
+    }
+
+    private ServiceOptionDto MapServiceToDto(ServiceOption service)
+    {
+        return new ServiceOptionDto
+        {
+            Id = service.Id,
+            Name = service.Name,
+            Price = service.Price
+        };
+    }
+
+    private ServiceOption CloneService(ServiceOption service)
+    {
+        return new ServiceOption
+        {
+            Id = Guid.NewGuid(),
+            Name = service.Name,
+            Price = service.Price
+        };
+    }
+}

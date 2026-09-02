@@ -1,0 +1,130 @@
+﻿using ConferenceRooms.Contracts;
+using ConferenceRooms.Services;
+using ConferenceRooms.Services.Results;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConferenceRooms.Controllers;
+
+/// <summary>
+/// Provides endpoints for managing conference rooms.
+/// </summary>
+[ApiController]
+[Route("api/rooms")]
+public class RoomsController(IConferenceRoomService service) : ControllerBase
+{
+    /// <summary>
+    /// Returns all conference rooms.
+    /// </summary>
+    /// <returns>List of conference rooms.</returns>
+    [HttpGet]
+    public IActionResult GetRooms()
+    {
+        var rooms = service.GetRooms();
+        return Ok(rooms);
+    }
+
+    /// <summary>
+    /// Creates a new conference room.
+    /// </summary>
+    /// <param name="request">Conference room data.</param>
+    /// <returns>Created room identifier and status message.</returns>
+    [HttpPost]
+    public IActionResult CreateRoom([FromBody] RoomDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var result = service.CreateRoom(request);
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+                OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+                OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Виникла внутрішня помилка." })
+            };
+        }
+
+        return CreatedAtAction(nameof(GetRooms), new { id = result.Value }, new { Id = result.Value, Message = "Зал успішно створено." });
+    }
+
+    /// <summary>
+    /// Updates an existing conference room.
+    /// </summary>
+    /// <param name="id">Conference room identifier.</param>
+    /// <param name="request">Updated conference room data.</param>
+    /// <returns>Operation result message.</returns>
+    [HttpPut("{id:guid}")]
+    public IActionResult UpdateRoom(Guid id, [FromBody] RoomDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var result = service.UpdateRoom(id, request);
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+                OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+                OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Виникла внутрішня помилка." })
+            };
+        }
+
+        return Ok(new { Id = id, Message = "Інформацію про зал оновлено." });
+    }
+
+    /// <summary>
+    /// Deletes a conference room.
+    /// </summary>
+    /// <param name="id">Conference room identifier.</param>
+    /// <returns>Operation result message.</returns>
+    [HttpDelete("{id:guid}")]
+    public IActionResult DeleteRoom(Guid id)
+    {
+        var result = service.DeleteRoom(id);
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+                OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+                OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Виникла внутрішня помилка." })
+            };
+        }
+
+        return Ok(new { Message = "Зал видалено." });
+    }
+
+    /// <summary>
+    /// Finds conference rooms available for the specified period and capacity.
+    /// </summary>
+    /// <param name="start">Start date and time of the booking interval.</param>
+    /// <param name="end">End date and time of the booking interval.</param>
+    /// <param name="capacity">Required room capacity.</param>
+    /// <returns>List of available conference rooms.</returns>
+    [HttpGet("available")]
+    public IActionResult GetAvailableRooms([FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] int capacity)
+    {
+        var result = service.FindAvailableRooms(start, end, capacity);
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+                OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+                OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Виникла внутрішня помилка." })
+            };
+        }
+
+        return Ok(result.Value);
+    }
+}

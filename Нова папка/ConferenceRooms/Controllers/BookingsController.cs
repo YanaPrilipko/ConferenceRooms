@@ -5,11 +5,29 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ConferenceRooms.Controllers;
 
+/// <summary>
+/// Provides endpoints for creating conference room bookings.
+/// </summary>
 [ApiController]
 [Route("api/bookings")]
 public class BookingsController(IConferenceRoomService service) : ControllerBase
 {
+    /// <summary>
+    /// Creates a new booking for a conference room.
+    /// </summary>
+    /// <param name="request">Booking data.</param>
+    /// <returns>Booking creation result.</returns>
+    /// <response code="200">Booking created successfully.</response>
+    /// <response code="400">Validation failed.</response>
+    /// <response code="404">Room not found.</response>
+    /// <response code="409">Room is already booked for selected time slot.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost]
+    [ProducesResponseType(typeof(BookingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public IActionResult CreateBooking([FromBody] BookingDto request)
     {
         if (!ModelState.IsValid)
@@ -20,20 +38,15 @@ public class BookingsController(IConferenceRoomService service) : ControllerBase
         var result = service.CreateBooking(request);
         if (!result.Success)
         {
-            return ToActionResult(result);
+            return result.ErrorCode switch
+            {
+                OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
+                OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
+                OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "An internal server error occurred." })
+            };
         }
 
         return Ok(result.Value);
-    }
-
-    private IActionResult ToActionResult(OperationResult result)
-    {
-        return result.ErrorCode switch
-        {
-            OperationErrorCode.NotFound => NotFound(new { Message = result.Error }),
-            OperationErrorCode.Conflict => Conflict(new { Message = result.Error }),
-            OperationErrorCode.ValidationFailed => BadRequest(new { Message = result.Error }),
-            _ => StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Виникла внутрішня помилка." })
-        };
     }
 }
